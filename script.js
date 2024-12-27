@@ -1,166 +1,273 @@
-window.addEventListener('load', function() {
+window.addEventListener('load', function(){
     const canvas = document.getElementById('canvas1');
     const ctx = canvas.getContext('2d');
+    canvas.width = 1400;
+    canvas.height = 720;
+    let enemies = [];
+    let score = 0;
+    let gameOver = false;
+    const fullScreenButton = document.getElementById('fullScreenButton');
 
-    canvas.width = 500;
-    canvas.height = 800;
+    class InputHandlder {
+        constructor() {
+            this.keys = [];
+            this.touchY = '';
+            this.touchThreshold = 30;
+            window.addEventListener('keydown', e => {
+                if ((   e.key === 's' ||
+                        e.key === 'w' || 
+                        e.key === 'a' || 
+                        e.key === 'd') 
+                        && this.keys.indexOf(e.key) === -1){
+                    this.keys.push(e.key);
+                }
+                if (e.key === 'Enter' && gameOver === true) {
+                    restartGame();
+                    }
+            });
+            window.addEventListener('keyup', e => {
+                if (    e.key === 's' ||
+                        e.key === 'w' || 
+                        e.key === 'a' || 
+                        e.key === 'd') {
+                    this.keys.splice(this.keys.indexOf(e.key), 1);
+                }
+                });
 
-    class Game {
-        constructor(ctx, width, height) {
-            this.ctx = ctx;
-            this.width = width;
-            this.height = height;
-            this.enemies = [];
-            this.enemyInterval = 700;
-            this.enemyTimer = 0;
-            this.enemyTypes = ['worm', 'ghost', 'spider'];
+            window.addEventListener('touchstart', e => {
+                this.touchY = e.changedTouches[0].pageY;
+            });
+            window.addEventListener('touchmove', e => {
+                const swipeDistance = e.changedTouches[0].pageY - this.touchY;
+                if (swipeDistance < -this.touchThreshold && this.keys.indexOf('swipe up') === -1) {
+                    this.keys.push('swipe up');
+                }
+                else if (swipeDistance > this.touchThreshold &&  this.keys.indexOf('swipe down') === -1) {
+                    this.keys.push('swipe down');
+                    if (gameOver) restartGame();
+                }
+            });
+            window.addEventListener('touchend', e => {
+                this.keys.splice(this.keys.indexOf('swipe up'), 1);
+                this.keys.splice(this.keys.indexOf('swipe down'), 1);
+            });
         }
-        
-        update(deltaTime) {
-            this.enemies = this.enemies.filter(object => !object.willDelete);
-            if( this.enemyTimer > this.enemyInterval) {
-                this.#addNewEnemy();
-                this.enemyTimer = 0;
+    }
+
+    class Player {
+        constructor(gameWidth, gameHeight) {
+            this.gameWidth = gameWidth;
+            this.gameHeight = gameHeight;
+            this.width = 200;
+            this.height = 200;
+            this.x = 50;
+            this.y = this.gameHeight - this.height;
+            this.image = document.getElementById('playerImage');
+            this.frameX = 0;
+            this.maxFrame = 8
+            this.frameY = 0;
+            this.speedX = 0;
+            this.vy = 0;
+            this.gravity = 1;
+            this.fps = 20;
+            this.frameInterval = 1000/this.fps;
+            this.frameTimer = 0;
+        }
+        restart() {
+            this.x = 50;
+            this.y = this.gameHeight - this.height;
+            this.maxFrame = 8
+            this.frameY = 0;
+        }
+        draw(context) {
+            context.drawImage(this.image, this.frameX * this.width, this.frameY * this.height, this.width, this.height, this.x, this.y, this.width, this.height);
+        }
+        update(input, deltaTime, enemies) {
+            enemies.forEach(enemy => {
+                const dx = (enemy.x + enemy.width * 0.5 - 21) - (this.x + this.width * 0.5);
+                const dy = (enemy.y + enemy.height * 0.5) - (this.y + this.height * 0.5 + 20);
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < (enemy.width/3) + (this.width/3)) {
+                    gameOver = true;
+                }
+            });
+
+            if (this.frameTimer > this.frameInterval) {
+                if (this.frameX >= this.maxFrame) this.frameX = 0
+                else this.frameX++;    
+                this.frameTimer = 0;
             }
             else {
-                this.enemyTimer += deltaTime;
+                this.frameTimer += deltaTime
             }
-            this.enemies.forEach(object => object.update(deltaTime));
-        }
 
-        draw() {
-            this.enemies.forEach(object => object.draw(this.ctx));
-        }
+            if (input.keys.indexOf('d') > -1) {
+                this.speedX = 5;
+            } 
+            else if (input.keys.indexOf('a') > -1) {
+                this.speedX = -5;
+            }
+            else if ((input.keys.indexOf('w') > -1 || input.keys.indexOf('swipe up') > -1) && this.onGround()) {
+                this.vy -= 30
+            }
+            else {this.speedX = 0}
+            this.x += this.speedX;
 
-        #addNewEnemy() {
-            const randomEnemy = this.enemyTypes[Math.floor(Math.random() * this.enemyTypes.length)];
-            if (randomEnemy == 'worm')  this.enemies.push(new Worm(this));
-            else if (randomEnemy == 'ghost') this.enemies.push(new Ghost(this));
-            else if (randomEnemy == 'spider') this.enemies.push(new Spider(this));
-            // this.enemies.sort(function(a, b) {
-            //     return a.y - b.y;
-            // });
+            if (this.x < 0) this.x = 0
+            else if (this.x > (this.gameWidth - this.width)) this.x = (this.gameWidth - this.width);
+            
+            this.y += this.vy;
+            if (!this.onGround()){
+                this.vy += this.gravity;
+                this.frameY = 1;
+                this.maxFrame = 0;
+            }
+            else {
+                this.vy = 0;
+                this.frameY =0;
+                this.maxFrame = 8;
+            }
+
+            if (this.y > this.gameHeight - this.height) this.y = this.gameHeight - this.height
+        }
+        onGround() {
+            return this.y >= this.gameHeight - this.height;
+        }
+    }
+
+    class Background {
+        constructor(gameWidth, gameHeight) {
+            this.gameWidth = gameWidth;
+            this.gameHeight = gameHeight;
+            this.image = document.getElementById('backgroundImage');
+            this.x = 0;
+            this.y = 0;
+            this.width = 2400;
+            this.height = 720;
+            this.speed = 3;
+        }
+        draw(context) {
+            context.drawImage(this.image, this.x, this.y, this.width, this.height);
+            context.drawImage(this.image, this.x + this.width - this.speed, this.y, this.width, this.height);
+        }
+        update() {
+            this.x -= this.speed;
+            if (this.x < 0 - this.width) this.x = 0;
+        }
+        restart() {
+            this.x = 0;
         }
     }
 
     class Enemy {
-        constructor(game) {
-            this.game = game;
-            this.willDelete = false;
-            this.frameX;
+        constructor(gameWidth, gameHeight) {
+            this.gameWidth = gameWidth;
+            this.gameHeight = gameHeight;
+            this.width = 160;
+            this.height = 119;
+            this.image = document.getElementById('enemyImage');
+            this.x = this.gameWidth;
+            this.y = this.gameHeight - this.height;
+            this.frameX = 0;
+            this.speed = 8
             this.maxFrame = 5;
-            this.frameInterval = 100;
+            this.fps = 20;
+            this.frameInterval = 1000/this.fps;
             this.frameTimer = 0;
+            this.willDelete = false;
         }
+        draw(context) {
 
+            context.drawImage(this.image, this.frameX * this.width, 0 * this.height, this.width, this.height, this.x, this.y, this.width, this.height);
+        }
         update(deltaTime) {
-            this.x -= this.vx * deltaTime;
-            if (this.x < 0 - this.width) {
-                this.willDelete = true;
-            }
-            // if (this.y < 0 - this.spriteHeight - 15) this.willDelete = true;
             if (this.frameTimer > this.frameInterval) {
-                if (this.frameX < this.maxFrame) {
-                    this.frameX ++;
-                }
-                else {
-                    this.frameX = 0;
-                    this.frameTimer = 0;
-                }
+                if (this.frameX >= this.maxFrame) this.frameX = 0
+                else this.frameX ++;
+                this.frameTimer = 0;
             }
             else {
                 this.frameTimer += deltaTime;
             }
-        }
+            this.x -= this.speed;
 
-        draw(ctx) {
-            ctx.drawImage(this.image, this.frameX * this.spriteWidth, 0, this.spriteWidth, this.spriteHeight, this.x, this.y, this.width, this.height);
-        }
-    }
-
-    class Worm extends Enemy {
-        constructor(game) {
-            super(game);
-            this.spriteWidth = 229;
-            this.spriteHeight = 171;
-            this.width = this.spriteWidth * 0.5;
-            this.height = this.spriteHeight * 0.5;
-            this.x = this.game.width;
-            this.y = this.game.height - this.height;
-            this.image = worm;
-            this.vx = Math.random() * 0.1 + 0.1;
-        }
-    }
-
-    class Ghost extends Enemy {
-        constructor(game) {
-            super(game);
-            this.spriteWidth = 261;
-            this.spriteHeight = 209;
-            this.width = this.spriteWidth * 0.5;
-            this.height = this.spriteHeight * 0.5;
-            this.x = this.game.width;
-            this.y = Math.random() * (this.game.height * 0.6);
-            this.image = ghost;
-            this.vx = Math.random() * 0.2 + 0.1;
-            this.angle = 0;
-            this.curve = Math.random() * 3;
-        }
-        update(deltaTime) {
-            super.update(deltaTime);
-            this.y += Math.sin(this.angle) * this.curve;
-            this.angle += 0.04;
-        }
-        draw(ctx) {
-            ctx.save();
-            ctx.globalAlpha = 0.71;
-            super.draw(ctx);
-            ctx.restore();
-
-        }
-    }
-
-    class Spider extends Enemy {
-        constructor(game) {
-            super(game);
-            this.spriteWidth = 310;
-            this.spriteHeight = 175;
-            this.width = this.spriteWidth * 0.5;
-            this.height = this.spriteHeight * 0.5;
-            this.x = Math.random() * this.game.width;
-            this.y = 0 - this.height;
-            this.image = spider;
-            this.vx = 0;
-            this.vy = Math.random() * 0.1 + 0.1;
-            this.maxLength = Math.random() * (this.game.height - 200);
-        }
-        update(deltaTime) {
-            super.update(deltaTime);
-            if (this.y < 0 - this.height * 2) {
+            if (this.x < 0 - this.width) {
                 this.willDelete = true;
+                score ++;
             }
-            this.y += this.vy * deltaTime;
-            if (this.y > this.maxLength) this.vy *= -1;
         }
-        draw(ctx) {
-            ctx.beginPath();
-            ctx.moveTo(this.x + (this.width * 0.5), 0);
-            ctx.lineTo(this.x + (this.width * 0.5), this.y + 5);
-            ctx.stroke();
-            super.draw(ctx);
+    }
+   
+    function handleEnemies(deltaTime) {
+        if (enemyTimer > enemyInterval + randomEnemyInterval) {
+            enemies.push(new Enemy(canvas.width, canvas.height));
+            randomEnemyInterval = Math.random() * 1000 + 500;
+            enemyTimer = 0;
+        }
+        else {
+            enemyTimer += deltaTime;
+        }
+        enemies.forEach(enemy => {
+            enemy.draw(ctx);
+            enemy.update(deltaTime);
+        });
+        enemies = enemies.filter(enemy => !enemy.willDelete);
+    }
+
+    function displayStatusText(context) {
+        context.textAlign = 'left';
+        context.fillStyle = 'black';
+        context.font = '40px Helvetics';
+        context.fillText('Score: ' + score, 20, 50);
+
+        if (gameOver) {
+            context.textAlign = 'center';
+            context.fillStyle = 'white';
+            context.fillText('Game Over! Press Enter or swipe down to try again!', canvas.width * 0.5, 200);
         }
     }
 
-    const game = new Game(ctx, canvas.width, canvas.height);
-    let lastTime = 1;
+    function restartGame() {
+        player.restart();
+        background.restart();
+        enemies = [];
+        score = 0;
+        gameOver = false;
+        animate(0);
+    }
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            canvas.requestFullscreen().catch(err => {
+            alert(`Error, can't enable full-screen mode: ${err.message}`)
+            });
+        }
+        else {
+            document.exitFullscreen();
+        }
+    }
+    fullScreenButton.addEventListener('click', toggleFullScreen);
+
+    const input = new InputHandlder();
+    const player = new Player(canvas.width, canvas.height);
+    const background = new Background(canvas.width, canvas.height)
+    
+    let lastTime = 0;
+    let enemyTimer = 0;
+    let enemyInterval = 1000;
+    let randomEnemyInterval = Math.random() * 1000 + 500;
 
     function animate(timeStamp) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
         const deltaTime = timeStamp - lastTime;
         lastTime = timeStamp;
-        game.update(deltaTime);
-        game.draw();
-        requestAnimationFrame(animate);
-    };
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        background.draw(ctx);
+        background.update();
+        handleEnemies(deltaTime);
+        player.draw(ctx);
+        player.update(input, deltaTime, enemies);
+        displayStatusText(ctx);
+        if (!gameOver) requestAnimationFrame(animate);
+    }
     animate(0);
 });
