@@ -1,36 +1,23 @@
-export default class Input {
+export class Input {
     constructor() {
-        this.lastKey = '';
+        this.keys = [];
+
         window.addEventListener('keydown', (e) => {
-            switch(e.key) {
-                case 'd':
-                    this.lastKey = 'PRESS d';
-                    break
-                case 'a':
-                    this.lastKey = 'PRESS a';
-                    break
-                case 'w':
-                    this.lastKey = 'PRESS w';
-                    break
-                case 's':
-                    this.lastKey = 'PRESS s';
-                    break
+            if ((e.key === 's' ||
+                 e.key === 'w' ||
+                 e.key === 'a' ||
+                 e.key === 'd'
+                ) && this.keys.indexOf(e.key) === -1) {
+                this.keys.push(e.key);
             }
+
         });
         window.addEventListener('keyup', (e) => {
-            switch(e.key) {
-                case 'd':
-                    this.lastKey = 'RELEASE d';
-                    break
-                case 'a':
-                    this.lastKey = 'RELEASE a';
-                    break
-                case 'w':
-                    this.lastKey = 'RELEASE w';
-                    break
-                case 's':
-                    this.lastKey = 'RELEASE s';
-                    break
+            if (e.key === 's' ||
+                e.key === 'w' ||
+                e.key === 'a' ||
+                e.key === 'd' ) {
+                this.keys.splice(this.keys.indexOf(e.key), 1);
             }
         });
     }
