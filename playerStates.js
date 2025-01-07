@@ -22,7 +22,7 @@ export class Sitting extends State {
         this.player.maxFrameX = 4;
     }
     input(input) {
-        if (input.includes('d') || input.includes('a')) this.player.setState(states.running);
+        if (input.includes('d') || input.includes('a')) this.player.setState(states.running, 1);
 
     }
 }
@@ -38,8 +38,8 @@ export class Running extends State {
         this.player.maxFrameX = 8;
     }
     input(input) {
-        if (input.includes('s')) this.player.setState(states.sitting);
-        else if (input.includes('w')) this.player.setState(states.jumping);
+        if (input.includes('s')) this.player.setState(states.sitting, 0);
+        else if (input.includes('w')) this.player.setState(states.jumping, 1);
     }
 }
 
@@ -55,7 +55,7 @@ export class Jumping extends State {
         this.player.maxFrameX = 6;
     }
     input(input) {
-        if (this.player.vy > this.player.gravity) this.player.setState(states.falling);
+        if (this.player.vy > this.player.gravity) this.player.setState(states.falling, 1);
     }
 }
 
@@ -70,6 +70,6 @@ export class Falling extends State {
         this.player.maxFrameX = 6;
     }
     input(input) {
-        if (this.player.onGround()) this.player.setState(states.running);
+        if (this.player.onGround()) this.player.setState(states.running, 1);
     }
 }
