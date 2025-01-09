@@ -3,6 +3,9 @@ export const states = {
     running: 1,
     jumping:2,
     falling: 3,
+    rolling: 4,
+    diving: 5,
+    hit: 6,
 };
 
 class State  {
@@ -23,7 +26,7 @@ export class Sitting extends State {
     }
     input(input) {
         if (input.includes('d') || input.includes('a')) this.player.setState(states.running, 1);
-
+        if (input.includes('Enter')) this.player.setState(states.rolling, 2);
     }
 }
 
@@ -71,5 +74,21 @@ export class Falling extends State {
     }
     input(input) {
         if (this.player.onGround()) this.player.setState(states.running, 1);
+    }
+}
+
+export class Rolling extends State {
+    constructor(player) {
+        super('rolling');
+        this.player = player;
+    }
+    enter() {
+        this.player.frameX = 0;
+        this.player.frameY = 6;
+        this.player.maxFrameX = 6;
+    }
+    input() {
+        if (!input.includes('Enter') && this.player.onGround()) this.player.setState(states.running, 1);
+        else if (!input.includes('Enter') && !this.player.onGround()) this.player.setState(states.falling, 1);
     }
 }
