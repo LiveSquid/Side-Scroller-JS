@@ -18,10 +18,12 @@ window.addEventListener('load', function(){
             this.maxSpeed = 3;
             this.background = new Background(this); 
             this.player = new Player(this); 
-            this.input = new Input();
+            this.input = new Input(this);
             this.enemies = [];
             this.enemyTimer = 0;
             this.enemyInterval = 1000;
+            this.debug = true;
+            this.score = 0;
         }
         update(deltaTime) {
             this.player.update(this.input.keys, deltaTime);
@@ -49,6 +51,8 @@ window.addEventListener('load', function(){
             }); 
         }
         addEnemy() {
+            if (this.speed > 0 && Math.random() < 0.5) this.enemies.push(new GroundEnemey(this));
+            else if(this.speed > 0) this.enemies.push(new ClimbingEnemy(this));
             this.enemies.push(new FlyingEnemy(this));
         }
     }

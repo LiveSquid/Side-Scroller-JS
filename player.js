@@ -23,6 +23,7 @@ export class Player {
         this.currentState.enter();
     }
     update(input, deltaTime) {
+        this.collision();
         this.currentState.input(input);
 
         this.x += this.speed;
@@ -49,6 +50,7 @@ export class Player {
     }
     draw(context, deltaTime) {
         context.drawImage(this.image, this.frameX * this.width, this.frameY * this.height, this.width, this.height, this.x, this.y, this.width, this.height);
+        if (this.game.debug) context.strokeRect(this.x, this.y, this.width, this.height);
     }
     onGround() {
         return this.y >= this.game.height - this.height -this.game.groundMargin;
@@ -57,5 +59,18 @@ export class Player {
         this.currentState = this.states[state];
         this.game.speed = this.game.maxSpeed * speed; 
         this.currentState.enter();
+    }
+    collision() {
+        this.game.enemies.forEach(enemy => {
+            if(
+                enemy.x < this.x + this.width &&
+                enemy.x + enemy.width > this.x &&
+                enemy.y < this.y + this.height &&
+                enemy.y + enemy.height > this.y 
+            ){
+                enemy.delete = true;
+                this.game.score ++;
+            }
+        });
     }
 }
