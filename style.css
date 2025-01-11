@@ -12,8 +12,9 @@
     transform: translate(-50%, -50%);
     max-height: 100%;
     max-width: 100%;
+    font-family: 'Creepster', cursive;
 }
 
-#player, #layer1, #layer2, #layer3, #layer4, #layer5, #fly, #plant, #spiderBig, #fire {
+#player, #layer1, #layer2, #layer3, #layer4, #layer5, #fly, #plant, #spiderBig, #fire, #boom, #heart {
     display: none;
 }

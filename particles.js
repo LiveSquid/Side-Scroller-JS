@@ -3,14 +3,13 @@ class Particle {
         this.game = game
         this.delete = false;
     }
-    update() {
-        this.x -= this.speedX + this.game.speed;
-        this.y -= this.speedY;
+    update(deltaTime) {
+        this.x -=(this.speedX + this.game.speed) * (deltaTime / 16.67);
+        this.y -= this.speedY * (deltaTime / 16.67);
         this.size *= 0.97;
         if (this.size < 0.5) this.delete = true;
     }
 }
-
 export class Dust extends Particle {
     constructor(game, x, y)  {
         super(game);
@@ -35,13 +34,13 @@ export class Splash extends Particle {
         this.size = Math.random() * 100 + 100; 
         this.x = x - this.size * 0.4;
         this.y = y - this.size * 0.5;
-        this.speedX = Math.random() * 6 - 3;
+        this.speedX = Math.random() * 6 - 4;
         this.speedY = Math.random() * 2 + 2;
         this.gravity = 0;
         this.image = fire;
     }
-    update() {
-        super.update();
+    update(deltaTime) {
+        super.update(deltaTime);
         this.gravity += 0.1;
         this.y += this.gravity;
     }
@@ -62,8 +61,8 @@ export class Fire extends Particle {
         this.angle = 0;
         this.va = Math.random() * 0.2 - 0.1;
     }
-    update() {
-        super.update();
+    update(deltaTime) {
+        super.update(deltaTime);
         this.angle += this.va;
         this.x += Math.sin(this.angle * 10)
     }

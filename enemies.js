@@ -8,7 +8,7 @@ class Enemy {
         this.delete = false;
     }
     update(deltaTime) {
-        this.x -= this.speedX + this.game.speed; 
+        this.x -= (this.speedX * (deltaTime / 16.67)) + this.game.speed; 
         this.y += this.speedY;
 
         if (this.frameTimer > this.frameInterval) {
@@ -45,7 +45,7 @@ export class FlyingEnemy extends Enemy {
     }
     update(deltaTime) {
         super.update(deltaTime);
-        this.angle += this.vAngle;
+        this.angle += this.vAngle * (deltaTime / 16.67);
         this.y += Math.sin(this.angle);
     }
 }
@@ -82,6 +82,7 @@ export class ClimbingEnemy extends Enemy {
         super.update(deltaTime);
         if (this.y > this.game.height - this.height - this.game.groundMargin) this.speedY *= -1;
         if (this.y < -this.height) this.delete = true;
+        this.y += this.speedY * (deltaTime / 16.67);
     }
     draw(context) {
         super.draw(context);
