@@ -7,7 +7,9 @@ export class Input {
             if ((e.key === 's' ||
                  e.key === 'w' ||
                  e.key === 'a' ||
-                 e.key === 'd'
+                 e.key === 'd' ||
+                 e.key === ' ' ||
+                 e.key === 'Shift'
                 ) && this.keys.indexOf(e.key) === -1) {
                 this.keys.push(e.key);
             }
@@ -17,7 +19,9 @@ export class Input {
             if (e.key === 's' ||
                 e.key === 'w' ||
                 e.key === 'a' ||
-                e.key === 'd' ) {
+                e.key === 'd' ||
+                e.key === ' ' ||
+                e.key === 'Shift') {
                 this.keys.splice(this.keys.indexOf(e.key), 1);
             }
         });

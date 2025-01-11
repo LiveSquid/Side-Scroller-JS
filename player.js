@@ -1,4 +1,4 @@
-import {Sitting, Running, Jumping, Falling} from "./playerStates.js";
+import {Sitting, Running, Jumping, Falling, Rolling, Diving} from "./playerStates.js";
 
 export class Player {
     constructor(game) {
@@ -18,9 +18,7 @@ export class Player {
         this.fps = 45;
         this.frameTimer = 0;
         this.frameInterval = 1000/ this.fps;
-        this.states = [new Sitting(this), new Running(this), new Jumping(this), new Falling(this)];
-        this.currentState = this.states[0];
-        this.currentState.enter();
+        this.states = [new Sitting(this.game), new Running(this.game), new Jumping(this.game), new Falling(this.game), new Rolling(this.game), new Diving(this.game)];
     }
     update(input, deltaTime) {
         this.collision();
@@ -34,6 +32,8 @@ export class Player {
         this.y += this.vy;
         if (!this.onGround()) this.vy += this.gravity;
         else this.vy = 0
+
+        if (this.y > this.game.height - this.height - this.game.groundMargin) this.y = this.game.height - this.height - this.game.groundMargin;
         
         if (this.x < 0) this.x = 0;
         if (this.x > this.game.width - this.width) this.x = this.game.width -  this.width;

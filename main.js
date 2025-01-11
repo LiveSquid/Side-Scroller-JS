@@ -22,11 +22,14 @@ window.addEventListener('load', function(){
             this.input = new Input(this);
             this.UI = new UI(this);
             this.enemies = [];
+            this.particles = [];
             this.enemyTimer = 0;
             this.enemyInterval = 1000;
             this.debug = true;
             this.score = 0;
             this.fontColor = 'black';
+            this.player.currentState = this.player.states[0];
+            this.player.currentState.enter();
         }
         update(deltaTime) {
             this.player.update(this.input.keys, deltaTime);
@@ -44,6 +47,11 @@ window.addEventListener('load', function(){
                 enemy.update(deltaTime);
                 if (enemy.delete) this.enemies.splice(this.enemies.indexOf(enemy), 1);
             }); 
+
+            this.particles.forEach((particle, index) => {
+                particle.update();
+                if (particle.delete) this.particles.splice(index, 1);
+            });
         }
         draw(ctx) {
             this.background.draw(ctx);
@@ -52,6 +60,9 @@ window.addEventListener('load', function(){
 
             this.enemies.forEach(enemy => {
                 enemy.draw(ctx);
+            }); 
+            this.particles.forEach(particle => {
+                particle.draw(ctx);
             }); 
         }
         addEnemy() {
