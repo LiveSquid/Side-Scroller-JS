@@ -4,6 +4,11 @@
     box-sizing: border-box;
 }
 
+#header {
+    font-family:Verdana, Geneva, Tahoma, sans-serif;
+    padding-top: 20px;
+    padding-left: 30px;
+}
 #canvas1 {
     border: 5px solid black;
     position: absolute;
