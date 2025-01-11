@@ -1,4 +1,4 @@
-# Side-Scroller-JS
+# Side-Scroller
 
 Hello! Thank you for playing my game I hope you enjoy!
 
