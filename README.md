@@ -1,9 +1,8 @@
 # Side-Scroller-JS
 
 Hello! Thank you for playing my game I hope you enjoy!
-
-Controls: \n
-D - Right \n
+Controls: 
+D - Right
 A - Left
 
 W - Jump
